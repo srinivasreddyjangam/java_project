@@ -5,19 +5,18 @@ pool:
   vmImage: ubuntu-latest
 
 steps:
-- task: UseJavaVersion@1
-  displayName: 'Set up JDK 21'
+- task: JavaToolInstaller@0
+  displayName: 'Install JDK 21'
   inputs:
-    version: '21'
-    architecture: 'x64'
+    versionSpec: '21'
+    jdkArchitecture: 'x64'
 
 - task: Maven@3
   displayName: 'Maven Build & Test'
   inputs:
     mavenPomFile: 'pom.xml'
     mavenOptions: '-Xmx3072m'
-    javaHomeOption: 'JDKVersion'
-    jdkVersionOption: '21'
+    javaHomeOption: 'Path'
     jdkArchitectureOption: 'x64'
     publishJUnitResults: true
     testResultsFiles: '**/surefire-reports/TEST-*.xml'
