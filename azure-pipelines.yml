@@ -2,35 +2,37 @@ trigger:
   - master
 
 pool:
-  vmImage: ubuntu-latest
+  name: 'java_nodepool'  # Your self-hosted agent pool
 
 steps:
-- task: JavaToolInstaller@0
-  displayName: 'Install JDK 21'
-  inputs:
-    versionSpec: '21'
-    jdkArchitecture: 'x64'
+  - task: JavaToolInstaller@0
+    inputs:
+      versionSpec: '21'  # Set to Java 21
+      jdkArchitecture: 'x64'
 
-- task: Maven@3
-  displayName: 'Maven Build & Test'
-  inputs:
-    mavenPomFile: 'pom.xml'
-    mavenOptions: '-Xmx3072m'
-    javaHomeOption: 'Path'
-    jdkArchitectureOption: 'x64'
-    publishJUnitResults: true
-    testResultsFiles: '**/surefire-reports/TEST-*.xml'
-    goals: 'clean package'
+  - task: Maven@3
+    inputs:
+      mavenPomFile: 'pom.xml'
+      mavenOptions: '-Xmx3072m'
+      jdkVersionOption: '1.21'
+      jdkArchitectureOption: 'x64'
+      publishJUnitResults: true
+      testResultsFiles: '**/surefire-reports/TEST-*.xml'
+      goals: 'clean package'
 
-- task: CopyFiles@2
-  displayName: 'Copy JAR File to Staging'
-  inputs:
-    SourceFolder: '$(Build.SourcesDirectory)/target'
-    Contents: '**/*.jar'
-    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+  - task: PublishTestResults@2
+    inputs:
+      testResultsFiles: '**/surefire-reports/TEST-*.xml'
+      testRunTitle: 'Maven Test Results'
+    condition: succeededOrFailed()
 
-- task: PublishBuildArtifacts@1
-  displayName: 'Publish JAR Artifact'
-  inputs:
-    pathToPublish: '$(Build.ArtifactStagingDirectory)'
-    artifactName: 'drop'
+  - task: CopyFiles@2
+    inputs:
+      sourceFolder: '$(Build.SourcesDirectory)/target'
+      contents: '**/*.jar'
+      targetFolder: '$(Build.ArtifactStagingDirectory)'
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathToPublish: '$(Build.ArtifactStagingDirectory)'
+      artifactName: 'drop'
